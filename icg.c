@@ -1,88 +1,90 @@
-#include <stdio.h>
-#include <string.h>
-#include <ctype.h>
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+#include<ctype.h>
 
-char expr[50];
+char stack[100];
+int top = -1;
 int temp = 1;
 
-void generate(char op, char a[], char b[], char result[])
-{
-    printf("%s = %s %c %s\n", result, a, op, b);
-}
-
-int precedence(char op)
-{
-    if (op == '*' || op == '/')
-        return 2;
-
-    if (op == '+' || op == '-')
+int precedence(char op) {
+    if(op == '+' || op == '-') 
+    {
         return 1;
+    }
+
+    if(op == '*' || op == '/') {
+        return 2;
+    }
 
     return 0;
 }
 
-int main()
-{
-    char operands[50][10];
-    char operators[50];
+int main() {
 
-    int top = -1;
-    int opTop = -1;
-    int i;
+    char expr[100];
+    char output[100];
 
-    printf("Enter expression: ");
-    scanf("%49s", expr);
+    int i,j=0;
+    printf("Enter the expression: ");
+    scanf("%s", expr);
 
-    printf("\nIntermediate Code:\n");
+    for(int i=2; expr[i]!='\0'; i++) {
+        char ch = expr[i];
 
-    for (i = 0; expr[i] != '\0'; i++)
-    {
-        if (isalnum((unsigned char)expr[i]))
-        {
-            top++;
-            operands[top][0] = expr[i];
-            operands[top][1] = '\0';
+        if(isalnum(ch)) {
+            output[j++]  = ch;
         }
-        else
-        {
-            while (opTop >= 0 &&
-                   precedence(operators[opTop]) >= precedence(expr[i]))
-            {
-                char a[10], b[10], result[10];
 
-                strcpy(b, operands[top--]);
-                strcpy(a, operands[top--]);
+        else if(ch == '(') {
+            stack[++top] = ch;
+        }
 
-                sprintf(result, "t%d", temp);
-
-                generate(operators[opTop], a, b, result);
-
-                strcpy(operands[++top], result);
-
-                temp++;
-                opTop--;
+        else if(ch == ')') {
+            while(top >= 0 && stack[top] != '(') {
+                output[j++] = stack[top--];
             }
 
-            operators[++opTop] = expr[i];
+            if(top >= 0 && stack[top] == '(') {
+                top--;
+            } 
+        }
+
+        else if(ch == '+' || ch == '-' || ch == '*' || ch == '/') {
+            while(top >= 0 && stack[top] != '(' && 
+            precedence(stack[top]) >= precedence(ch)) {
+                output[j++] = stack[top--];
+            } 
+            stack[++top] = ch;
         }
     }
 
-    while (opTop >= 0)
-    {
-        char a[10], b[10], result[10];
+    while(top >= 0) {
+        output[j++] = stack[top--];
+    }
+    output[j] = '\0';
 
-        strcpy(b, operands[top--]);
-        strcpy(a, operands[top--]);
+    printf("\n Three Address Code:\n"); 
+    char operand[100][20];
+    int operandTop = -1;
 
-        sprintf(result, "t%d", temp);
+    for(int i=0; output[i] != '\0'; i++) {
+        char ch = output[i];
 
-        generate(operators[opTop], a, b, result);
+        if(isalnum(ch)) {
+            operand[++operandTop][0] = ch;
+            operand[operandTop][1] = '\0';
+        } else {
+            char op1[20], op2[20];
+            strcpy(op2, operand[operandTop--]);
+            strcpy(op1, operand[operandTop--]);
 
-        strcpy(operands[++top], result);
-
-        temp++;
-        opTop--;
+            printf("t%d = %s %c %s\n", temp, op1, ch, op2);
+            sprintf(operand[++operandTop], "t%d", temp);
+            temp++;
+        }
     }
 
+    printf("%c = %s\n", expr[0], operand[operandTop]);
     return 0;
 }
