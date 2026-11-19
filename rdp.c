@@ -97,13 +97,9 @@ void F()
 int main()
 {
     printf("Enter the expression: ");
-    if (fgets(s, sizeof(s), stdin) == NULL)
-        return 0;
-
-    s[strcspn(s, "\n")] = '\0';
+    scanf("%99s", s);
 
     E();
-    skipSpaces();
 
     if (error == 0 && s[i] == '\0')
         printf("Accepted");
